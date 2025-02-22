@@ -1,0 +1,21 @@
+.card-img-top {
+    height: 150px;
+    object-fit: cover;
+}
+
+.card {
+    border: none;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+    .card-img-top {
+        height: 120px;
+    }
+}

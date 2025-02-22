@@ -1,0 +1,30 @@
+/* ProductCard.css */
+.rating {
+    font-size: 14px;
+}
+
+.price-section {
+    margin-bottom: 10px;
+}
+
+.card-img-top {
+    object-fit: contain;
+}
+/*.product-name {*/
+/*    white-space: nowrap;          !* Không cho xuống dòng *!*/
+/*    overflow: hidden;             !* Ẩn phần nội dung vượt quá chiều rộng *!*/
+/*    text-overflow: ellipsis;      !* Hiển thị dấu ba chấm khi nội dung bị cắt *!*/
+/*    max-width: 220px; !* Đặt chiều rộng tối đa cho phần tử (thay đổi giá trị này theo nhu cầu) *!*/
+/*    color: black;*/
+/*    text-decoration: none;*/
+/*}*/
+.centered-alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1050;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
