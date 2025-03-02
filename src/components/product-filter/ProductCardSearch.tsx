@@ -3,7 +3,7 @@ import { ProductDefault } from "../../types/productDefault";
 import { ShoppingCart, Heart } from "lucide-react";
 import {Link} from 'react-router-dom';
 
-const ProductCard = ({ product }: { product: ProductDefault }) => {
+const ProductCardSearch = ({ product }: { product: ProductDefault }) => {
     const formatPriceVND = (price: number) =>
         price.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
     const [isFavorite, setIsFavorite] = useState(false);
@@ -13,7 +13,7 @@ const ProductCard = ({ product }: { product: ProductDefault }) => {
         setIsFavorite(!isFavorite);
     };
     return (
-        <div className="w-full sm:w-1/2 md:w-1/5 px-2 mb-4">
+        <div className="w-full sm:w-1/2 md:w-1/4 px-2 mb-4">
             <div className="bg-white rounded-2xl shadow-lg h-full border border-gray-300 hover:border-green-400 transition">
                 <div className="relative group">
                     <Link to={`/product/${product.id}`}>
@@ -42,7 +42,7 @@ const ProductCard = ({ product }: { product: ProductDefault }) => {
 
                 <div className="p-4">
                     <Link to={`/product/${product.id}`}>
-                    <h5 className="text-lg font-semibold text-gray-800 text-left">{product.name}</h5>
+                    <h6 className="text-lg font-semibold text-gray-800 text-left truncate">{product.name}</h6>
                     </Link>
                     <div className="flex items-center my-2 text-left">
                         <div className="text-yellow-400 text-base">{'⭐'.repeat(5)}</div>
@@ -69,4 +69,4 @@ const ProductCard = ({ product }: { product: ProductDefault }) => {
 
 };
 
-export default ProductCard;
+export default ProductCardSearch;
