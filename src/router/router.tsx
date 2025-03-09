@@ -8,6 +8,9 @@ import ProductFilter from "../components/product-filter/ProductFilter";
 import Login from "../components/login/Login";
 import Footer from "../components/footer/Footer";
 import Header from "../components/header/Header";
+import Carousel from "../components/carousel/Carousel";
+import Register from "../components/register/Register";
+import AuthCallback from "../contexts/ AuthCallback";
 
 export const Router = createBrowserRouter([
 
@@ -16,6 +19,7 @@ export const Router = createBrowserRouter([
         element: <App/>,
         children: [
             {
+                index: true,
                 element: <Home/>
             },
             {
@@ -26,14 +30,18 @@ export const Router = createBrowserRouter([
                 path: "product-filter",
                 element: <ProductFilter/>,
             },{
-                index: true,
+                path:"login",
                 element: <Login/>,
             },{
                 path: "footer",
                 element: <Footer/>
             }, {
-                path: "header",
-                element: <Header/>
+                path: "register",
+                element: <Register/>
+            }, {
+                path: "auth/callback",
+                element:<AuthCallback/>
+
             }
         ]
 

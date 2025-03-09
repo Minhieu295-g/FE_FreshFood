@@ -1,7 +1,37 @@
-import React from "react";
+import React, {useContext, useState} from "react";
 import LoginProvider from "./LoginProvider";
+import {UserLogin} from "../../types/login";
+import {LoginAccount} from "../../api/userAPI";
+import {UserContext} from "../../contexts/UserContext";
 
 const Login: React.FC = () => {
+    const [userAccount, setUserAccount] = useState({
+        username: "",
+        password: ""
+    });
+    const {login} = useContext(UserContext)!;
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setUserAccount(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+
+    const [error, setError] = useState("");
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            console.log(userAccount);
+            const response = await login(userAccount);
+            console.log(response);
+            window.location.href = "/"; // Chuyển hướng sau khi đăng nhập
+        } catch (err: any) {
+            setError(err.response?.data?.message || "Đăng nhập thất bại");
+        }
+    };
+    
     return (
         <div className="bg-gray-50 dark:bg-gray-800">
             <div className="flex min-h-[80vh] flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -10,17 +40,20 @@ const Login: React.FC = () => {
                 </div>
                 <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                     <div className="bg-white dark:bg-gray-700 px-4 pb-4 pt-8 sm:rounded-lg sm:px-10 sm:pb-6 sm:shadow">
-                        <form className="space-y-6">
+                        <form className="space-y-6" onSubmit={handleSubmit}>
                             <div>
                                 <label
-                                    htmlFor="email"
+                                    htmlFor="username"
                                     className="block text-sm font-medium text-gray-700 dark:text-white">
                                     Email address / Username
                                 </label>
                                 <div className="mt-1">
                                     <input
-                                        id="email"
+                                        id="username"
                                         type="text"
+                                        name="username"
+                                        value={userAccount.username}
+                                        onChange={handleChange}
                                         required
                                         className="block w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-300 dark:focus:border-indigo-400 dark:focus:ring-indigo-400 sm:text-sm"/>
                                 </div>
@@ -36,6 +69,8 @@ const Login: React.FC = () => {
                                         id="password"
                                         name="password"
                                         type="password"
+                                        value={userAccount.password}
+                                        onChange={handleChange}
                                         autoComplete="current-password"
                                         required
                                         className="block w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-300 dark:focus:border-indigo-400 dark:focus:ring-indigo-400 sm:text-sm"/>
@@ -60,6 +95,7 @@ const Login: React.FC = () => {
                                     </a>
                                 </div>
                             </div>
+                            {error && <p className="text-red-500 text-sm">{error}</p>}
                             <div>
                                 <button
                                     type="submit"

@@ -1,14 +1,18 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-import ParentCategory from "./components/parent-category/ParentCategory";
-import PopularProduct from "./components/product/PopularProduct";
 import {Outlet} from "react-router-dom";
+import Layout from "./pages/Layout";
+import {UserContextProvider} from "./contexts/UserContext";
 
 function App() {
   return (
     <div>
-     <Outlet/>
+        <UserContextProvider>
+            <Layout>
+                <Outlet/>
+            </Layout>
+        </UserContextProvider>
+
     </div>
   );
 }

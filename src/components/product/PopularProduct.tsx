@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import {fetchProductDefault} from "../../api/productApi";
+import {fetchProductDefault, fetchProductsBySearch} from "../../api/productApi";
 import {ProductDefault} from "../../types/productDefault";
 import ProductCard from "./ProductCard";
 
@@ -11,8 +11,10 @@ const PopularProduct = () => {
     useEffect(() => {
         const getProductDefaults = async () => {
             try {
-                const data = await fetchProductDefault();
-                setProductDefaults(data);
+                const data = await fetchProductsBySearch(
+                    {}
+                );
+                setProductDefaults(data.data.items);
             } catch (err: any) {
                 setError(err.message || 'Có lỗi xảy ra');
             } finally {
