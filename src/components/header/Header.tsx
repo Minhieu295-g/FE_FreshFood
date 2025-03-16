@@ -6,7 +6,8 @@ const Header = () =>{
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-    const { isLoggedIn, logout, user } = useContext(UserContext)!;
+    const { isLoggedIn, logout, user, cartItemQuantity } = useContext(UserContext)!;
+    console.log(cartItemQuantity + " la so luong cua no")
     return (
         <nav className="bg-green-500 shadow-lg">
             <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
@@ -130,7 +131,7 @@ const Header = () =>{
                         {/* Badge số lượng sản phẩm */}
                         <span
                             className="absolute top-0 right-0 transform translate-x-2 -translate-y-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
-        0
+        {!isLoggedIn ? (0) : cartItemQuantity}
     </span>
 
                     </div>

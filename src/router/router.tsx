@@ -11,6 +11,8 @@ import Header from "../components/header/Header";
 import Carousel from "../components/carousel/Carousel";
 import Register from "../components/register/Register";
 import AuthCallback from "../contexts/ AuthCallback";
+import ShoppingCart from "../components/cart/ShoppingCart";
+import DeliveryAddress from "../components/delivery-address/DeliverAddress";
 
 export const Router = createBrowserRouter([
 
@@ -41,7 +43,12 @@ export const Router = createBrowserRouter([
             }, {
                 path: "auth/callback",
                 element:<AuthCallback/>
-
+            }, {
+                path: "cart",
+                element: <ShoppingCart/>
+            }, {
+                path: "delivery-address",
+                element: <DeliveryAddress/>
             }
         ]
 
