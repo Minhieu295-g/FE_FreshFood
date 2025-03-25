@@ -13,6 +13,7 @@ import Register from "../components/register/Register";
 import AuthCallback from "../contexts/ AuthCallback";
 import ShoppingCart from "../components/cart/ShoppingCart";
 import DeliveryAddress from "../components/delivery-address/DeliverAddress";
+import OrderConfirmation from "../components/order/OrderConfirm";
 
 export const Router = createBrowserRouter([
 
@@ -49,6 +50,9 @@ export const Router = createBrowserRouter([
             }, {
                 path: "delivery-address",
                 element: <DeliveryAddress/>
+            }, {
+                path: "order-confirm",
+                element: <OrderConfirmation/>
             }
         ]
 
