@@ -1,66 +1,134 @@
-import React, {useState} from "react";
-import {LoginAccount, LoginByFacebook, LoginByGoogle} from "../../api/userAPI";
-import {ProviderUrl} from "../../types/login";
+"use client"
+
+import { useState } from "react"
+import { LoginByFacebook, LoginByGoogle } from "../../api/userAPI"
+import Link from "react-router-dom"
 
 const LoginProvider = () => {
-    const[providerUrl, setProviderUrl] = useState<ProviderUrl>();
-    const handleLoginGoogle = async (e: any) =>{
-        try {
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+    const [isFacebookLoading, setIsFacebookLoading] = useState(false)
+    const [error, setError] = useState("")
 
-            const response = await LoginByGoogle();
+    const handleLoginGoogle = async () => {
+        try {
+            setIsGoogleLoading(true)
+            setError("")
+            const response = await LoginByGoogle()
             console.log(response)
-            window.location.href = response.data;
+            window.location.href = response.data
         } catch (err: any) {
+            setError("Không thể đăng nhập bằng Google. Vui lòng thử lại sau.")
+            console.error("Google login error:", err)
+        } finally {
+            setIsGoogleLoading(false)
         }
     }
-    const handleLoginFacebook = async (e: any) =>{
-        try {
 
-            const response = await LoginByFacebook();
+    const handleLoginFacebook = async () => {
+        try {
+            setIsFacebookLoading(true)
+            setError("")
+            const response = await LoginByFacebook()
             console.log(response)
-            window.location.href = response.data;
+            window.location.href = response.data
         } catch (err: any) {
+            setError("Không thể đăng nhập bằng Facebook. Vui lòng thử lại sau.")
+            console.error("Facebook login error:", err)
+        } finally {
+            setIsFacebookLoading(false)
         }
     }
+
     return (
         <div className="mt-6">
+            {/* Divider */}
             <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
+                    <div className="w-full border-t border-gray-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                                    <span className="bg-white dark:bg-gray-700 px-2 text-gray-500 dark:text-white">
-                                        Or continue with
-                                    </span>
+                    <span className="bg-white px-2 text-gray-500">Hoặc đăng nhập với</span>
                 </div>
             </div>
+
+            {/* Error message */}
+            {error && <div className="mt-4 text-sm text-center text-red-600">{error}</div>}
+
+            {/* Social login buttons */}
             <div className="mt-6 grid grid-cols-2 gap-3">
                 <button
                     onClick={handleLoginGoogle}
-                    className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-500 dark:text-white shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:cursor-wait disabled:opacity-50"
-                    aria-label="Sign in with Google">
-                    <img className="max-w-[25px]" src="https://ucarecdn.com/8f25a2ba-bdcf-4ff1-b596-088f330416ef/"
-                         alt="Google"/>
+                    disabled={isGoogleLoading || isFacebookLoading}
+                    className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                    aria-label="Đăng nhập với Google"
+                >
+                    {isGoogleLoading ? (
+                        <svg
+                            className="animate-spin h-5 w-5 text-gray-400"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                        </svg>
+                    ) : (
+                        <>
+                            <img className="h-5 w-5" src="https://ucarecdn.com/8f25a2ba-bdcf-4ff1-b596-088f330416ef/" alt="Google" />
+                            <span className="hidden sm:inline">Google</span>
+                        </>
+                    )}
                 </button>
+
                 <button
                     onClick={handleLoginFacebook}
-                    className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-500 dark:text-white shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:cursor-wait disabled:opacity-50"
-                    aria-label="Sign in with GitHub">
-                    <img className="max-w-[25px]" src="https://ucarecdn.com/6f56c0f1-c9c0-4d72-b44d-51a79ff38ea9/"
-                         alt="Facebook"/>
+                    disabled={isGoogleLoading || isFacebookLoading}
+                    className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                    aria-label="Đăng nhập với Facebook"
+                >
+                    {isFacebookLoading ? (
+                        <svg
+                            className="animate-spin h-5 w-5 text-gray-400"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                        </svg>
+                    ) : (
+                        <>
+                            <img
+                                className="h-5 w-5"
+                                src="https://ucarecdn.com/6f56c0f1-c9c0-4d72-b44d-51a79ff38ea9/"
+                                alt="Facebook"
+                            />
+                            <span className="hidden sm:inline">Facebook</span>
+                        </>
+                    )}
                 </button>
             </div>
-            <div className="m-auto mt-6 w-fit md:mt-8">
-                                <span className="m-auto dark:text-gray-400">
-                                    Don't have an account?{' '}
-                                    <a className="font-semibold text-indigo-600 dark:text-indigo-100" href="/register">
-                                        Create Account
-                                    </a>
-                                </span>
+
+            {/* Registration link */}
+            <div className="mt-8 text-center">
+                <p className="text-sm text-gray-600">
+                    Chưa có tài khoản?{" "}
+                    <div  className="font-medium text-green-600 hover:text-green-500 transition-colors">
+                        Đăng ký ngay
+                    </div>
+                </p>
             </div>
         </div>
-
-    );
-
+    )
 }
-export default LoginProvider;
+
+export default LoginProvider
+

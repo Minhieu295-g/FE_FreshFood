@@ -22,3 +22,20 @@ export interface DeliveryAddressRequest {
     detailAddress: string;
     userId: number;
 }
+export interface DeliveryAddressResponse {
+    id: number;
+    name: string;
+    numberPhone: string;
+    provinceId: number;
+    districtId: number;
+    wardId: number;
+    provinceName: string;
+    districtName: string;
+    wardName: string;
+    detailAddress: string;
+    default: boolean;
+}
+export interface DeliveryFeeResponse {
+    deliveryFee: string;
+    deliveryDate: string;
+}
