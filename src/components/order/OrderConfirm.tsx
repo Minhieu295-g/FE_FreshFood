@@ -1,15 +1,114 @@
 "use client"
-
-import { useState } from "react"
+import React, {useContext, useEffect, useState} from "react"
+import {useNavigate} from "react-router-dom";
 import { CreditCard, MapPin, MessageCircle, Package, Receipt, Truck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Separator } from "../ui/separator"
 import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
+import { useLocation } from "react-router-dom"
+import {CartItem} from "../../types/cart";
+import {getDeliveryAddressDefault, getDeliveryFee} from "../../api/deliveryAddressApi";
+import {DeliveryAddressResponse, DeliveryFeeResponse} from "../../types/address";
+import {toast} from "react-toastify";
+import {createOrder} from "../../api/orderApi";
+import {OrderRequest} from "../../types/order";
+import {UserContext} from "../../contexts/UserContext";
 
 const OrderConfirmation = () => {
-    const [selectedMethod, setSelectedMethod] = useState("cod")
+    const [selectedMethod, setSelectedMethod] = useState("COD")
+    const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddressResponse>();
+    const [deliveryFee, setDeliveryFee] = useState<DeliveryFeeResponse>();
+    const [formData, setFormData] = useState({
+        note: "",
+    })
+    const location = useLocation()
+    const selectedCartItems = location.state?.selectedCartItems || []
+    const navigate = useNavigate();
+    const { getQuantityCartItem } = useContext(UserContext)!
 
+    const calculateTotalPrice = (items: CartItem[]) => {
+        return items.reduce((total: number, item) => total + item.productVariant.price * item.quantity, 0)
+    }
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+        const { name, value } = e.target
+        setFormData({ ...formData, [name]: value })
+
+    }
+
+    useEffect(() => {
+        const fetchDeliveryInfo = async () => {
+            try {
+                const userData = localStorage.getItem("user");
+                if (userData==null){
+                    return;
+                }
+                const user = JSON.parse(userData);
+                console.log(user)
+                const address = await getDeliveryAddressDefault(user.userId, true)
+                setDeliveryAddress(address)
+
+                if (address && address.id) {
+                    const fee = await getDeliveryFee(address.id)
+                    setDeliveryFee(fee)
+                }
+            } catch (error) {
+                console.error("Failed to fetch delivery info:", error)
+            }
+        }
+
+        fetchDeliveryInfo()
+    }, [])
+
+    const handleOrder = async () => {
+        try {
+            const userData = localStorage.getItem("user");
+            if (!userData) {
+                toast.error("Vui lòng đăng nhập trước khi đặt hàng!");
+                return;
+            }
+            const user = JSON.parse(userData);
+
+            if (!deliveryAddress || !deliveryFee) {
+                toast.error("Thông tin giao hàng chưa đầy đủ!");
+                return;
+            }
+
+            const orderData: OrderRequest = {
+                totalPrice: Number(totalPrice) + Number(deliveryFee?.deliveryFee),
+                note: formData.note || "",
+                deliveryFee: Number(deliveryFee?.deliveryFee) || 0,
+                expectedDeliveryDate: deliveryFee?.deliveryDate || "",
+                paymentMethod: selectedMethod ?? "COD",
+                voucherId: 0,
+                deliveryAddressId: deliveryAddress?.id ?? 0,
+                userId: user?.userId ?? 0,
+                cartItems: selectedCartItems
+            };
+            console.log("Order data : ")
+            console.log(orderData)
+
+            try {
+                const response = await createOrder(orderData);
+
+                if (orderData.paymentMethod === "BANK_TRANSFER") {
+                    window.location.href = response.data;  // 🔥 Redirect đến VNPay
+                } else {
+                    getQuantityCartItem()
+                    toast.success("Đặt hàng thành công!");
+                    navigate("/order-success");
+                }
+            } catch (error) {
+                console.error("Lỗi khi đặt hàng:", error);
+                toast.error("Đặt hàng thất bại, vui lòng thử lại!");
+            }
+        } catch (error) {
+            console.error("Lỗi khi đặt hàng:", error);
+            toast.error("Đặt hàng thất bại, vui lòng thử lại!");
+        }
+    };
+    const totalPrice = calculateTotalPrice(selectedCartItems)
     return (
         <div className="container mx-auto py-8 px-4 max-w-4xl">
             <h1 className="text-2xl font-bold mb-6 text-center">Xác Nhận Đơn Hàng</h1>
@@ -25,13 +124,12 @@ const OrderConfirmation = () => {
                 <CardContent>
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="font-medium">Lê Minh Hiếu</p>
-                            <p className="text-muted-foreground">(+84) 345778312</p>
+                            <p className="font-medium">{deliveryAddress?.name}</p>
+                            <p className="text-muted-foreground">(+84) {deliveryAddress?.numberPhone}</p>
                         </div>
                         <div className="flex-1">
                             <p className="text-sm">
-                                Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú, Đường Không Tên, Thị Trấn An Phú, Huyện An Phú,
-                                An Giang
+                                {deliveryAddress?.detailAddress}
                             </p>
                         </div>
                         <Button variant="outline" size="sm" className="whitespace-nowrap">
@@ -62,24 +160,37 @@ const OrderConfirmation = () => {
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td className="p-2">
-                                    <div className="h-20 w-20 rounded-md overflow-hidden border">
-                                        <img
-                                            src="http://res.cloudinary.com/digtjnoh3/image/upload/v1740147420/u72kxxkaiedgkvh4swbl.jpg"
-                                            alt="Sản phẩm"
-                                            className="h-full w-full object-cover"
-                                        />
-                                    </div>
-                                </td>
-                                <td className="p-2">
-                                    <p className="font-medium">Set 3 cuộn túi đựng rác tự phân hủy sinh học</p>
-                                    <p className="text-sm text-muted-foreground">Loại: Set - 3 cuộn</p>
-                                </td>
-                                <td className="p-2 text-sm">₫9.500</td>
-                                <td className="p-2 text-sm">1</td>
-                                <td className="p-2 text-sm text-right font-medium">₫9.500</td>
-                            </tr>
+                            {selectedCartItems.map((item: CartItem) => (
+                                <tr key={item.id} className="">
+                                    {/* Thumbnail */}
+                                    <td className="p-2">
+                                        <div className="h-20 w-20 rounded-md overflow-hidden border">
+                                            <img
+                                                src={item.productVariant.thumbnailUrl}
+                                                alt={item.productVariant.name}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                    </td>
+
+                                    {/* Tên sản phẩm + Loại */}
+                                    <td className="p-2">
+                                        <p className="font-medium">{item.productVariant.name}</p>
+                                        <p className="text-sm text-muted-foreground">Loại: {item.productVariant.unit}</p>
+                                    </td>
+
+                                    {/* Đơn giá */}
+                                    <td className="p-2 text-sm">₫{item.productVariant.price.toLocaleString("vi-VN")}</td>
+
+                                    {/* Số lượng */}
+                                    <td className="p-2 text-sm">{item.quantity}</td>
+
+                                    {/* Thành tiền */}
+                                    <td className="p-2 text-sm text-right font-medium">
+                                        ₫{(item.productVariant.price * item.quantity).toLocaleString("vi-VN")}
+                                    </td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>
@@ -91,7 +202,7 @@ const OrderConfirmation = () => {
                 <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                            <Receipt className="h-5 w-5 text-primary mr-2" />
+                            <Receipt className="h-5 w-5 text-primary mr-2"/>
                             <h2 className="text-lg font-semibold">Shopee Voucher</h2>
                         </div>
                         <Button variant="destructive" size="sm">
@@ -108,10 +219,10 @@ const OrderConfirmation = () => {
                         {/* Message for seller */}
                         <div>
                             <div className="flex items-center mb-3">
-                                <MessageCircle className="h-5 w-5 text-primary mr-2" />
+                                <MessageCircle className="h-5 w-5 text-primary mr-2"/>
                                 <h2 className="text-lg font-semibold">Lời nhắn cho người bán</h2>
                             </div>
-                            <Textarea placeholder="Nhập lời nhắn của bạn..." className="resize-none" />
+                            <Textarea placeholder="Nhập lời nhắn của bạn..." className="resize-none" name={"note"} value={formData.note} onChange={handleChange} />
                         </div>
 
                         {/* Shipping info */}
@@ -123,11 +234,11 @@ const OrderConfirmation = () => {
                             <div className="bg-muted/50 p-4 rounded-lg">
                                 <div className="flex justify-between mb-2">
                                     <span className="text-muted-foreground">Ngày giao hàng dự kiến:</span>
-                                    <span className="font-medium">20/03/2025</span>
+                                    <span className="font-medium">{deliveryFee?.deliveryDate}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Phí vận chuyển:</span>
-                                    <span className="font-medium">₫5.000</span>
+                                    <span className="font-medium">  ₫{Number(deliveryFee?.deliveryFee).toLocaleString("vi-VN")} </span>
                                 </div>
                             </div>
                         </div>
@@ -145,46 +256,48 @@ const OrderConfirmation = () => {
                             <h2 className="text-lg font-semibold">Phương thức thanh toán</h2>
                         </div>
                         <div className="flex flex-wrap gap-3 mt-2">
+
                             <div
                                 className={`py-2 px-4 border rounded-md cursor-pointer transition-all ${
-                                    selectedMethod === "shopeepay"
-                                        ? "border-primary bg-primary/10 text-primary"
-                                        : "hover:border-muted-foreground"
+                                    selectedMethod === "COD"
+                                        ? "border-red-500 bg-red-500 text-white"
+                                        : "hover:border-gray-300"
                                 }`}
-                                onClick={() => setSelectedMethod("shopeepay")}
-                            >
-                                Ví ShopeePay
-                            </div>
-                            <div
-                                className={`py-2 px-4 border rounded-md cursor-pointer transition-all ${
-                                    selectedMethod === "cod"
-                                        ? "border-primary bg-primary/10 text-primary"
-                                        : "hover:border-muted-foreground"
-                                }`}
-                                onClick={() => setSelectedMethod("cod")}
+                                onClick={() => setSelectedMethod("COD")}
                             >
                                 Thanh toán khi nhận hàng
+                            </div>
+                            <div
+                                key={"BANK_TRANSFER"}
+                                className={`py-2 px-4 border rounded-md cursor-pointer transition-all ${
+                                    selectedMethod === "BANK_TRANSFER"
+                                        ? "border-red-500 bg-red-500 text-white"
+                                        : "hover:border-gray-300"
+                                }`}
+                                onClick={() => setSelectedMethod("BANK_TRANSFER")}
+                            >
+                                Thanh toán qua ngân hàng
                             </div>
                         </div>
                     </div>
 
-                    <Separator className="my-4" />
+                    <Separator className="my-4"/>
 
                     {/* Order summary */}
                     <div className="flex flex-col items-end">
                         <div className="flex gap-4 mb-2">
                             <span className="text-muted-foreground">Tổng tiền hàng:</span>
-                            <span className="font-medium">₫9.500</span>
+                            <span className="font-medium">   ₫{totalPrice.toLocaleString("vi-VN")}</span>
                         </div>
                         <div className="flex gap-4 mb-2">
                             <span className="text-muted-foreground">Phí vận chuyển:</span>
-                            <span className="font-medium">₫5.000</span>
+                            <span className="font-medium">₫{Number(deliveryFee?.deliveryFee).toLocaleString("vi-VN")}</span>
                         </div>
                         <div className="flex gap-4 mb-4">
                             <span className="text-lg font-semibold">Tổng thanh toán:</span>
-                            <span className="text-lg font-bold text-destructive">₫14.500</span>
+                            <span className="text-lg font-bold text-destructive">   ₫{(totalPrice + Number(deliveryFee?.deliveryFee)).toLocaleString("vi-VN")} </span>
                         </div>
-                        <Button size="lg" className="bg-destructive bg-red-600 hover:bg-destructive/90">
+                        <Button size="lg" className="bg-destructive bg-red-600 hover:bg-destructive/90" onClick={handleOrder}>
                             Đặt hàng
                         </Button>
                     </div>

@@ -14,6 +14,9 @@ import AuthCallback from "../contexts/ AuthCallback";
 import ShoppingCart from "../components/cart/ShoppingCart";
 import DeliveryAddress from "../components/delivery-address/DeliverAddress";
 import OrderConfirmation from "../components/order/OrderConfirm";
+import OrderSuccessPage from "../components/order/OrderSuccessData";
+import OrderHistory from "../components/order/OrderHistory";
+import AdminDashboard from "../components/admin/AdminDashboard";
 
 export const Router = createBrowserRouter([
 
@@ -53,6 +56,15 @@ export const Router = createBrowserRouter([
             }, {
                 path: "order-confirm",
                 element: <OrderConfirmation/>
+            }, {
+                path: "order-success",
+                element: <OrderSuccessPage/>
+            }, {
+                path: "order-history",
+                element: <OrderHistory/>
+            }, {
+                path: "admin-dashboard",
+                element: <AdminDashboard/>
             }
         ]
 

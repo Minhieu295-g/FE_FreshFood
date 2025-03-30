@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from "react"
 import { deleteCartItem, getCartById, updateCartItem } from "../../api/cartApi"
 import { type Cart, type CartItem, mapCartItemToRequest } from "../../types/cart"
 import { UserContext } from "../../contexts/UserContext"
+import { useNavigate } from "react-router-dom"
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft, RefreshCw, CreditCard, Truck, Shield } from "lucide-react"
 
 const ShoppingCart: React.FC = () => {
@@ -16,9 +17,8 @@ const ShoppingCart: React.FC = () => {
     const [isUpdating, setIsUpdating] = useState<number | null>(null)
     const [isDeleting, setIsDeleting] = useState<number | null>(null)
     const [selectedItems, setSelectedItems] = useState<number[]>([])
-
     const formatPriceVND = (price: number) => price.toLocaleString("vi-VN", { style: "currency", currency: "VND" })
-
+    const navigate = useNavigate()
     useEffect(() => {
         const fetchCart = async () => {
             setIsLoading(true)
@@ -129,8 +129,9 @@ const ShoppingCart: React.FC = () => {
             return
         }
 
-        // Proceed to checkout logic here
-        console.log("Proceeding to checkout with items:", selectedItems)
+        const selectedCartItems = cart?.cartItem.filter((item) => selectedItems.includes(item.id)) || []
+
+        navigate("/order-confirm", { state: { selectedCartItems } })
     }
 
     if (isLoading) {
