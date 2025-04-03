@@ -17,6 +17,7 @@ import OrderConfirmation from "../components/order/OrderConfirm";
 import OrderSuccessPage from "../components/order/OrderSuccessData";
 import OrderHistory from "../components/order/OrderHistory";
 import AdminDashboard from "../components/admin/AdminDashboard";
+import ProductManagement from "../components/admin/product-management/ProductManagement";
 
 export const Router = createBrowserRouter([
 
@@ -65,6 +66,9 @@ export const Router = createBrowserRouter([
             }, {
                 path: "admin-dashboard",
                 element: <AdminDashboard/>
+            }, {
+                path: "product-management",
+                element: <ProductManagement/>
             }
         ]
 

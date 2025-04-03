@@ -26,6 +26,17 @@ export const FetchProductById = async ({ params }: LoaderFunctionArgs): Promise<
     throw new Error('Không tìm thấy sản phẩm.');
 };
 
+export const getProducts = async (): Promise<ApiResponse<PaginatedResponse<Product>>> => {
+    const response = await axios.get(`http://localhost:80/product/list`);
+
+    if (response.status === 200) {
+        console.log(response.data);
+        return response.data;
+    }
+
+    throw new Error('Không tìm thấy sản phẩm.');
+}
+
 export const fetchProductsBySearch = async (
     params: SearchParams
 ): Promise<ApiResponse<PaginatedResponse<ProductDefault>>> => {

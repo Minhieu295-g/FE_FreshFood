@@ -735,7 +735,7 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
 
     return (
         <Dialog open={true} onOpenChange={() => onClose()}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" style={{ width: "70vw", maxWidth: "1200px", height: "90vh" }}>
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <span>Chi tiết đơn hàng #{order.orderNumber}</span>
