@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import {
@@ -30,6 +29,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Input } from "../../components/ui/input"
 import { Separator } from "../../components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog"
+import {OrderResponse} from "../../types/order";
+import {getOrdersByUserId} from "../../api/orderApi";
+import dayjs from "dayjs";
 
 // Order status types
 type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "returned"
@@ -100,183 +102,184 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; icon: Re
 }
 
 // Sample data for demonstration
-const sampleOrders: Order[] = [
-    {
-        id: "1",
-        orderNumber: "ORD-20240325-7812",
-        date: "25/03/2024, 15:30",
-        total: 245000,
-        status: "delivered",
-        paymentMethod: "Thanh toán khi nhận hàng (COD)",
-        paymentStatus: "paid",
-        items: [
-            {
-                id: 1,
-                name: "Set 3 cuộn túi đựng rác tự phân hủy sinh học",
-                price: 9500,
-                quantity: 2,
-                image: "https://res.cloudinary.com/digtjnoh3/image/upload/v1740147420/u72kxxkaiedgkvh4swbl.jpg",
-                variant: "Set - 3 cuộn",
-            },
-            {
-                id: 2,
-                name: "Rau cải ngọt hữu cơ (500g)",
-                price: 35000,
-                quantity: 1,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728028836/ripempxa3z48aqc1clfa.jpg",
-                variant: "Gói 500g",
-            },
-            {
-                id: 3,
-                name: "Táo Envy New Zealand size 70-80 (1kg)",
-                price: 185000,
-                quantity: 1,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Hộp 1kg",
-            },
-        ],
-        shippingAddress: {
-            name: "Lê Minh Hiếu",
-            phone: "(+84) 345778312",
-            address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
-            city: "An Giang",
-            district: "Huyện An Phú",
-            ward: "Thị Trấn An Phú",
-        },
-        trackingNumber: "VNPOST123456789",
-        estimatedDelivery: "28/03/2024",
-    },
-    {
-        id: "2",
-        orderNumber: "ORD-20240320-6543",
-        date: "20/03/2024, 09:15",
-        total: 178000,
-        status: "shipped",
-        paymentMethod: "Ví MoMo",
-        paymentStatus: "paid",
-        items: [
-            {
-                id: 4,
-                name: "Thịt heo hữu cơ (500g)",
-                price: 89000,
-                quantity: 2,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Gói 500g",
-            },
-        ],
-        shippingAddress: {
-            name: "Lê Minh Hiếu",
-            phone: "(+84) 345778312",
-            address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
-            city: "An Giang",
-            district: "Huyện An Phú",
-            ward: "Thị Trấn An Phú",
-        },
-        trackingNumber: "VNPOST987654321",
-        estimatedDelivery: "23/03/2024",
-    },
-    {
-        id: "3",
-        orderNumber: "ORD-20240315-5421",
-        date: "15/03/2024, 14:20",
-        total: 65000,
-        status: "cancelled",
-        paymentMethod: "Thẻ tín dụng/ghi nợ",
-        paymentStatus: "failed",
-        items: [
-            {
-                id: 5,
-                name: "Sữa tươi hữu cơ (1L)",
-                price: 65000,
-                quantity: 1,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Hộp 1L",
-            },
-        ],
-        shippingAddress: {
-            name: "Lê Minh Hiếu",
-            phone: "(+84) 345778312",
-            address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
-            city: "An Giang",
-            district: "Huyện An Phú",
-            ward: "Thị Trấn An Phú",
-        },
-    },
-    {
-        id: "4",
-        orderNumber: "ORD-20240310-4321",
-        date: "10/03/2024, 11:45",
-        total: 320000,
-        status: "processing",
-        paymentMethod: "Chuyển khoản ngân hàng",
-        paymentStatus: "paid",
-        items: [
-            {
-                id: 6,
-                name: "Gạo hữu cơ (5kg)",
-                price: 160000,
-                quantity: 2,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Túi 5kg",
-            },
-        ],
-        shippingAddress: {
-            name: "Lê Minh Hiếu",
-            phone: "(+84) 345778312",
-            address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
-            city: "An Giang",
-            district: "Huyện An Phú",
-            ward: "Thị Trấn An Phú",
-        },
-        estimatedDelivery: "15/03/2024",
-    },
-    {
-        id: "5",
-        orderNumber: "ORD-20240305-3210",
-        date: "05/03/2024, 16:30",
-        total: 95000,
-        status: "pending",
-        paymentMethod: "Thanh toán khi nhận hàng (COD)",
-        paymentStatus: "pending",
-        items: [
-            {
-                id: 7,
-                name: "Trứng gà hữu cơ (10 quả)",
-                price: 45000,
-                quantity: 1,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Hộp 10 quả",
-            },
-            {
-                id: 8,
-                name: "Rau xà lách hữu cơ (300g)",
-                price: 25000,
-                quantity: 2,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Gói 300g",
-            },
-        ],
-        shippingAddress: {
-            name: "Lê Minh Hiếu",
-            phone: "(+84) 345778312",
-            address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
-            city: "An Giang",
-            district: "Huyện An Phú",
-            ward: "Thị Trấn An Phú",
-        },
-    },
-]
+// const sampleOrders: Order[] = [
+//     {
+//         id: "1",
+//         orderNumber: "ORD-20240325-7812",
+//         date: "25/03/2024, 15:30",
+//         total: 245000,
+//         status: "delivered",
+//         paymentMethod: "Thanh toán khi nhận hàng (COD)",
+//         paymentStatus: "paid",
+//         items: [
+//             {
+//                 id: 1,
+//                 name: "Set 3 cuộn túi đựng rác tự phân hủy sinh học",
+//                 price: 9500,
+//                 quantity: 2,
+//                 image: "https://res.cloudinary.com/digtjnoh3/image/upload/v1740147420/u72kxxkaiedgkvh4swbl.jpg",
+//                 variant: "Set - 3 cuộn",
+//             },
+//             {
+//                 id: 2,
+//                 name: "Rau cải ngọt hữu cơ (500g)",
+//                 price: 35000,
+//                 quantity: 1,
+//                 image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728028836/ripempxa3z48aqc1clfa.jpg",
+//                 variant: "Gói 500g",
+//             },
+//             {
+//                 id: 3,
+//                 name: "Táo Envy New Zealand size 70-80 (1kg)",
+//                 price: 185000,
+//                 quantity: 1,
+//                 image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+//                 variant: "Hộp 1kg",
+//             },
+//         ],
+//         shippingAddress: {
+//             name: "Lê Minh Hiếu",
+//             phone: "(+84) 345778312",
+//             address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
+//             city: "An Giang",
+//             district: "Huyện An Phú",
+//             ward: "Thị Trấn An Phú",
+//         },
+//         trackingNumber: "VNPOST123456789",
+//         estimatedDelivery: "28/03/2024",
+//     },
+//     {
+//         id: "2",
+//         orderNumber: "ORD-20240320-6543",
+//         date: "20/03/2024, 09:15",
+//         total: 178000,
+//         status: "shipped",
+//         paymentMethod: "Ví MoMo",
+//         paymentStatus: "paid",
+//         items: [
+//             {
+//                 id: 4,
+//                 name: "Thịt heo hữu cơ (500g)",
+//                 price: 89000,
+//                 quantity: 2,
+//                 image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+//                 variant: "Gói 500g",
+//             },
+//         ],
+//         shippingAddress: {
+//             name: "Lê Minh Hiếu",
+//             phone: "(+84) 345778312",
+//             address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
+//             city: "An Giang",
+//             district: "Huyện An Phú",
+//             ward: "Thị Trấn An Phú",
+//         },
+//         trackingNumber: "VNPOST987654321",
+//         estimatedDelivery: "23/03/2024",
+//     },
+//     {
+//         id: "3",
+//         orderNumber: "ORD-20240315-5421",
+//         date: "15/03/2024, 14:20",
+//         total: 65000,
+//         status: "cancelled",
+//         paymentMethod: "Thẻ tín dụng/ghi nợ",
+//         paymentStatus: "failed",
+//         items: [
+//             {
+//                 id: 5,
+//                 name: "Sữa tươi hữu cơ (1L)",
+//                 price: 65000,
+//                 quantity: 1,
+//                 image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+//                 variant: "Hộp 1L",
+//             },
+//         ],
+//         shippingAddress: {
+//             name: "Lê Minh Hiếu",
+//             phone: "(+84) 345778312",
+//             address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
+//             city: "An Giang",
+//             district: "Huyện An Phú",
+//             ward: "Thị Trấn An Phú",
+//         },
+//     },
+//     {
+//         id: "4",
+//         orderNumber: "ORD-20240310-4321",
+//         date: "10/03/2024, 11:45",
+//         total: 320000,
+//         status: "processing",
+//         paymentMethod: "Chuyển khoản ngân hàng",
+//         paymentStatus: "paid",
+//         items: [
+//             {
+//                 id: 6,
+//                 name: "Gạo hữu cơ (5kg)",
+//                 price: 160000,
+//                 quantity: 2,
+//                 image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+//                 variant: "Túi 5kg",
+//             },
+//         ],
+//         shippingAddress: {
+//             name: "Lê Minh Hiếu",
+//             phone: "(+84) 345778312",
+//             address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
+//             city: "An Giang",
+//             district: "Huyện An Phú",
+//             ward: "Thị Trấn An Phú",
+//         },
+//         estimatedDelivery: "15/03/2024",
+//     },
+//     {
+//         id: "5",
+//         orderNumber: "ORD-20240305-3210",
+//         date: "05/03/2024, 16:30",
+//         total: 95000,
+//         status: "pending",
+//         paymentMethod: "Thanh toán khi nhận hàng (COD)",
+//         paymentStatus: "pending",
+//         items: [
+//             {
+//                 id: 7,
+//                 name: "Trứng gà hữu cơ (10 quả)",
+//                 price: 45000,
+//                 quantity: 1,
+//                 image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+//                 variant: "Hộp 10 quả",
+//             },
+//             {
+//                 id: 8,
+//                 name: "Rau xà lách hữu cơ (300g)",
+//                 price: 25000,
+//                 quantity: 2,
+//                 image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+//                 variant: "Gói 300g",
+//             },
+//         ],
+//         shippingAddress: {
+//             name: "Lê Minh Hiếu",
+//             phone: "(+84) 345778312",
+//             address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
+//             city: "An Giang",
+//             district: "Huyện An Phú",
+//             ward: "Thị Trấn An Phú",
+//         },
+//     },
+// ]
 
 const OrderHistory = () => {
-    const [orders, setOrders] = useState<Order[]>([])
-    const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
+    // const [orders, setOrders] = useState<Order[]>([])
+    const[orders, setOrders] = useState<OrderResponse[]>([]);
+    const [filteredOrders, setFilteredOrders] = useState<OrderResponse[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [activeTab, setActiveTab] = useState("all")
     const [searchQuery, setSearchQuery] = useState("")
     const [sortBy, setSortBy] = useState("date-desc")
     const [timeFilter, setTimeFilter] = useState("all-time")
     const [showFilters, setShowFilters] = useState(false)
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+    const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null)
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -291,18 +294,28 @@ const OrderHistory = () => {
     useEffect(() => {
         const fetchOrders = async () => {
             setIsLoading(true)
-            // Simulate API call
+            try{
+                const userData = localStorage.getItem("user");
+                if (userData==null){
+                    return;
+                }
+                const user = JSON.parse(userData);
+                const data = await getOrdersByUserId(user.userId);
+                console.log(user)
+                setOrders(data.data.items)
+                setFilteredOrders(data.data.items)
+                console.log("Order Response: ")
+            }catch (e){
+                console.log(e)
+            }
             setTimeout(() => {
-                setOrders(sampleOrders)
-                setFilteredOrders(sampleOrders)
                 setIsLoading(false)
             }, 1000)
         }
 
         fetchOrders()
     }, [])
-
-    // Filter orders based on active tab, search query, and time filter
+    console.log(orders)
     useEffect(() => {
         let result = [...orders]
 
@@ -317,7 +330,7 @@ const OrderHistory = () => {
             result = result.filter(
                 (order) =>
                     order.orderNumber.toLowerCase().includes(query) ||
-                    order.items.some((item) => item.name.toLowerCase().includes(query)),
+                    order.items.some((item) => item.product.name.toLowerCase().includes(query)),
             )
         }
 
@@ -348,9 +361,9 @@ const OrderHistory = () => {
             } else if (sortBy === "date-asc") {
                 return dateA.getTime() - dateB.getTime()
             } else if (sortBy === "total-desc") {
-                return b.total - a.total
+                return b.totalPrice - a.totalPrice
             } else if (sortBy === "total-asc") {
-                return a.total - b.total
+                return a.totalPrice - b.totalPrice
             }
 
             return 0
@@ -375,7 +388,7 @@ const OrderHistory = () => {
     }
 
     // Handle order selection for details view
-    const handleViewOrderDetails = (order: Order) => {
+    const handleViewOrderDetails = (order: OrderResponse) => {
         setSelectedOrder(order)
     }
 
@@ -599,7 +612,7 @@ const OrderHistory = () => {
 
 // Order Card Component
 interface OrderCardProps {
-    order: Order
+    order: OrderResponse
     formatCurrency: (amount: number) => string
     onViewDetails: () => void
 }
@@ -629,11 +642,11 @@ const OrderCard = ({ order, formatCurrency, onViewDetails }: OrderCardProps) => 
                         </div>
                         <p className="text-sm text-gray-600 flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5" />
-                            {order.date}
+                            {dayjs(order.date).format("DD/MM/YYYY HH:mm")}
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900">{formatCurrency(order.total)}</p>
+                        <p className="font-medium text-gray-900">{formatCurrency(order.totalPrice)}</p>
                         <Button variant="outline" size="sm" onClick={onViewDetails}>
                             <Eye className="h-4 w-4 mr-1.5" />
                             Chi tiết
@@ -648,16 +661,16 @@ const OrderCard = ({ order, formatCurrency, onViewDetails }: OrderCardProps) => 
                     {displayItems.map((item) => (
                         <div key={item.id} className="flex gap-3">
                             <div className="h-16 w-16 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
-                                <img src={item.image || "/placeholder.svg"} alt={item.name} className="h-full w-full object-cover" />
+                                <img src={item.product.thumbnailUrl || "/placeholder.svg"} alt={item.product.name} className="h-full w-full object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-medium text-gray-900 line-clamp-1">{item.name}</h4>
-                                {item.variant && <p className="text-xs text-gray-500">Loại: {item.variant}</p>}
+                                <h4 className="text-sm font-medium text-gray-900 line-clamp-1">{item.product.name}</h4>
+                                {item.product.unit && <p className="text-xs text-gray-500">Loại: {item.product.unit}</p>}
                                 <div className="flex items-center justify-between mt-1">
                                     <p className="text-sm text-gray-700">
-                                        {formatCurrency(item.price)} x {item.quantity}
+                                        {formatCurrency(item.product.price)} x {item.quantity}
                                     </p>
-                                    <p className="text-sm font-medium text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
+                                    <p className="text-sm font-medium text-gray-900">{formatCurrency(item.product.price * item.quantity)}</p>
                                 </div>
                             </div>
                         </div>
@@ -692,7 +705,7 @@ const OrderCard = ({ order, formatCurrency, onViewDetails }: OrderCardProps) => 
                     )}
 
                     {(order.status === "shipped" || order.status === "delivered") && (
-                        <Button variant="outline" size="sm" className="text-xs">
+                        <Button variant="outline" size="sm" className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50">
                             Theo dõi đơn hàng
                         </Button>
                     )}
@@ -721,7 +734,7 @@ const OrderCard = ({ order, formatCurrency, onViewDetails }: OrderCardProps) => 
 
 // Order Details Dialog Component
 interface OrderDetailsDialogProps {
-    order: Order
+    order: OrderResponse
     formatCurrency: (amount: number) => string
     onClose: () => void
 }
@@ -730,12 +743,13 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
     const status = statusConfig[order.status]
 
     // Calculate subtotal
-    const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const subtotal = order.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
     const shippingFee = 30000
 
     return (
         <Dialog open={true} onOpenChange={() => onClose()}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" style={{ width: "70vw", maxWidth: "1200px", height: "90vh" }}>
+
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <span>Chi tiết đơn hàng #{order.orderNumber}</span>
@@ -760,7 +774,8 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600 text-sm">Ngày đặt hàng:</span>
-                                    <span className="text-gray-900">{order.date}</span>
+                                    <span className="text-gray-900">                            {dayjs(order.date).format("DD/MM/YYYY HH:mm")}
+</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600 text-sm">Trạng thái:</span>
@@ -777,31 +792,32 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
                                     <span className="text-gray-600 text-sm">Trạng thái thanh toán:</span>
                                     <Badge
                                         variant={
-                                            order.paymentStatus === "paid"
+                                            order.paymentMethod === "BANK_TRANSFER"
                                                 ? ("success" as "destructive")
-                                                : order.paymentStatus === "pending"
+                                                : order.paymentMethod === "COD"
                                                     ? ("warning" as "secondary")
                                                     : "destructive"
                                         }
                                     >
-                                        {order.paymentStatus === "paid"
+                                        {order.paymentMethod === "BANK_TRANSFER"
                                             ? "Đã thanh toán"
-                                            : order.paymentStatus === "pending"
+                                            : order.paymentMethod === "COD"
                                                 ? "Chờ thanh toán"
                                                 : "Thất bại"}
                                     </Badge>
 
                                 </div>
-                                {order.trackingNumber && (
+                                {order.orderNumber && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-600 text-sm">Mã vận đơn:</span>
-                                        <span className="text-gray-900">{order.trackingNumber}</span>
+                                        <span className="text-gray-900">{order.orderNumber}</span>
                                     </div>
                                 )}
-                                {order.estimatedDelivery && (
+                                {order.expectedDate && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-600 text-sm">Ngày giao dự kiến:</span>
-                                        <span className="text-gray-900">{order.estimatedDelivery}</span>
+                                        <span className="text-gray-900">        {dayjs(order.expectedDate).format("DD/MM/YYYY HH:mm")}
+</span>
                                     </div>
                                 )}
                             </div>
@@ -811,10 +827,10 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
                             <h3 className="text-sm font-medium text-gray-700 mb-2">Địa chỉ giao hàng</h3>
                             <div className="bg-gray-50 rounded-lg p-4">
                                 <p className="font-medium text-gray-900">{order.shippingAddress.name}</p>
-                                <p className="text-gray-700">{order.shippingAddress.phone}</p>
+                                <p className="text-gray-700">{order.shippingAddress.numberPhone}</p>
                                 <p className="text-gray-700 mt-1">
-                                    {order.shippingAddress.address}, {order.shippingAddress.ward}, {order.shippingAddress.district},{" "}
-                                    {order.shippingAddress.city}
+                                    {order.shippingAddress.detailAddress}, {order.shippingAddress.wardName}, {order.shippingAddress.districtName},{" "}
+                                    {order.shippingAddress.provinceName}
                                 </p>
                             </div>
                         </div>
@@ -861,25 +877,25 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
                                                 <div className="flex items-center">
                                                     <div className="h-12 w-12 flex-shrink-0 rounded overflow-hidden bg-gray-100">
                                                         <img
-                                                            src={item.image || "/placeholder.svg"}
-                                                            alt={item.name}
+                                                            src={item.product.thumbnailUrl || "/placeholder.svg"}
+                                                            alt={item.product.name}
                                                             className="h-full w-full object-cover"
                                                         />
                                                     </div>
                                                     <div className="ml-4">
-                                                        <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                                                        {item.variant && <div className="text-xs text-gray-500">Loại: {item.variant}</div>}
+                                                        <div className="text-sm font-medium text-gray-900">{item.product.name}</div>
+                                                        {item.product.unit && <div className="text-xs text-gray-500">Loại: {item.product.unit}</div>}
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-700">
-                                                {formatCurrency(item.price)}
+                                                {formatCurrency(item.product.price)}
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-700">
                                                 {item.quantity}
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                                                {formatCurrency(item.price * item.quantity)}
+                                                {formatCurrency(item.product.price * item.quantity)}
                                             </td>
                                         </tr>
                                     ))}
@@ -895,12 +911,12 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
                                 </div>
                                 <div className="flex justify-between py-1">
                                     <span className="text-gray-600">Phí vận chuyển:</span>
-                                    <span className="text-gray-900">{formatCurrency(shippingFee)}</span>
+                                    <span className="text-gray-900">{formatCurrency(order.shippingFee)}</span>
                                 </div>
                                 <Separator className="my-2" />
                                 <div className="flex justify-between py-1">
                                     <span className="font-medium text-gray-900">Tổng cộng:</span>
-                                    <span className="font-bold text-lg text-green-600">{formatCurrency(order.total)}</span>
+                                    <span className="font-bold text-lg text-green-600">{formatCurrency(order.totalPrice)}</span>
                                 </div>
                             </div>
                         </div>

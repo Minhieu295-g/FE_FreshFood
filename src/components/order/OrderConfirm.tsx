@@ -12,8 +12,9 @@ import {getDeliveryAddressDefault, getDeliveryFee} from "../../api/deliveryAddre
 import {DeliveryAddressResponse, DeliveryFeeResponse} from "../../types/address";
 import {toast} from "react-toastify";
 import {createOrder} from "../../api/orderApi";
-import {OrderRequest} from "../../types/order";
+import {OrderRequest, OrderSuccessProps} from "../../types/order";
 import {UserContext} from "../../contexts/UserContext";
+import dayjs from "dayjs";
 
 const OrderConfirmation = () => {
     const [selectedMethod, setSelectedMethod] = useState("COD")
@@ -91,13 +92,38 @@ const OrderConfirmation = () => {
 
             try {
                 const response = await createOrder(orderData);
+                const orderDetails: OrderSuccessProps = {
+                    orderNumber: response.data,
+                    orderDate: dayjs().format("DD/MM/YYYY, HH:mm"),
+                    deliveryFee: orderData.deliveryFee,
+                    deliveryDate: orderData.expectedDeliveryDate,
+                    totalAmount: orderData.totalPrice,
+                    paymentMethod: "Thanh toán khi nhận hàng (COD)",
+                    shippingAddress: {
+                        name: deliveryAddress.name,
+                        phone: "(+84) " + deliveryAddress.numberPhone,
+                        address: deliveryAddress.detailAddress,
+                        city: deliveryAddress.provinceName,
+                        district: deliveryAddress.districtName,
+                        ward: deliveryAddress.wardName,
+                    },
+                    items: selectedCartItems.map((cartItem : CartItem, index: number) => ({
+                        id: cartItem.productVariant.id,
+                        name: cartItem.productVariant.name,
+                        price: cartItem.productVariant.price,
+                        quantity: cartItem.quantity,
+                        image: cartItem.productVariant.thumbnailUrl,
+                        variant: cartItem.productVariant.unit,
+                    }))                  }
 
                 if (orderData.paymentMethod === "BANK_TRANSFER") {
+                    orderDetails.orderNumber = ""
+                    sessionStorage.setItem("orderDetails", JSON.stringify(orderDetails));
                     window.location.href = response.data;  // 🔥 Redirect đến VNPay
                 } else {
                     getQuantityCartItem()
                     toast.success("Đặt hàng thành công!");
-                    navigate("/order-success");
+                    navigate("/order-success", {state: {orderDetails}});
                 }
             } catch (error) {
                 console.error("Lỗi khi đặt hàng:", error);
