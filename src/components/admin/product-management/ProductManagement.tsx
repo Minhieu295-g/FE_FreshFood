@@ -5,22 +5,25 @@ import { Filter, Plus, Trash2, ChevronDown, RefreshCw, Package, Layers, Shopping
 import { Card, CardContent } from "../../../components/ui/card"
 import { Button } from "../../../components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
-import type { Product, ProductVariant, ToastState } from "../../../types/product"
-import { sampleCategories, sampleProducts } from "../../../ultils/product-utils"
+import type {Product, ProductRequestDTO, ProductVariant, ToastState} from "../../../types/product"
 import { ProductFilters } from "./ProductFilters"
 import { ProductTableView } from "./ProductTableView"
 import { ProductGridView } from "./ProductGridView"
 import { ProductPagination } from "./ProductPagination"
-import { ProductDetail } from "./ProductDetail"
+import {ProductChanges, ProductDetail} from "./ProductDetail"
 import { AddProduct } from "./AddProduct"
 import { VariantForm } from "./VariantForm"
 import { DeleteConfirmation } from "./DeleteConfirmation"
 import { Toast } from "./Toast"
-import {getProducts} from "../../../api/productApi";
+import {deleteProduct, getProducts} from "../../../api/productApi";
+import {Category} from "../../../types/category";
+import {fetchCategories} from "../../../api/categoryApi";
+import {sampleCategories, sampleProducts} from "../../../ultils/product-utils";
 
 const ProductManagement = () => {
-    const [products, setProducts] = useState<Product[]>(sampleProducts)
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>(sampleProducts)
+    const [products, setProducts] = useState<Product[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [categoryFilter, setCategoryFilter] = useState<string>("all")
@@ -44,6 +47,8 @@ const ProductManagement = () => {
         const fetchData = async () => {
             try {
                 const productData = await getProducts();
+                const categoriesData = await fetchCategories();
+                setCategories(categoriesData);
                 setProducts(productData.data.items)
             } catch (e) {
                 console.error(e);
@@ -57,7 +62,7 @@ const ProductManagement = () => {
         name: "",
         description: "",
         thumbnailUrl: "/placeholder.svg?height=200&width=200",
-        category: sampleCategories[0],
+        category: categories[0],
         productImages: [],
         productVariants: [],
     })
@@ -187,10 +192,18 @@ const ProductManagement = () => {
     }
 
     // Handle delete product
-    const handleDeleteProduct = () => {
+    const handleDeleteProduct = async () => {
         setProducts(products.filter((product) => !productsToDelete.includes(product.id)))
         setSelectedProducts(selectedProducts.filter((id) => !productsToDelete.includes(id)))
         setShowDeleteConfirm(false)
+
+        try {
+            for (const id of productsToDelete) {
+                await deleteProduct(id);
+            }
+        } catch (e) {
+            console.error("Xóa sản phẩm thất bại:", e);
+        }
 
         // Show success toast
         setToast({
@@ -244,7 +257,7 @@ const ProductManagement = () => {
             name: "",
             description: "",
             thumbnailUrl: "/placeholder.svg?height=200&width=200",
-            category: sampleCategories[0],
+            category: categories[0],
             productImages: [],
             productVariants: [],
         })
@@ -264,11 +277,16 @@ const ProductManagement = () => {
     }
 
     // Handle update product
-    const handleUpdateProduct = () => {
-        if (!selectedProduct) return
+    const handleUpdateProduct = (changes: ProductChanges) => {
+        console.log("Product changes:", changes)
+
+        // Here you would normally make your API call with the changes
+        // For now, we'll just update the UI
 
         // Update product in list
-        setProducts(products.map((product) => (product.id === selectedProduct.id ? selectedProduct : product)))
+        setProducts(
+            products.map((product) => (product.id === changes.modifiedProduct.id ? changes.modifiedProduct : product)),
+        )
 
         // Close modal
         setShowProductDetail(false)
@@ -430,7 +448,7 @@ const ProductManagement = () => {
                                 name: "",
                                 description: "",
                                 thumbnailUrl: "/placeholder.svg?height=200&width=200",
-                                category: sampleCategories[0],
+                                category: categories[0],
                                 productImages: [],
                                 productVariants: [],
                             })
@@ -454,7 +472,7 @@ const ProductManagement = () => {
                     sortBy={sortBy}
                     setSortBy={setSortBy}
                     resetFilters={resetFilters}
-                    categories={sampleCategories}
+                    categories={categories}
                 />
             )}
 
@@ -565,7 +583,7 @@ const ProductManagement = () => {
                 isEditMode={isEditMode}
                 setIsEditMode={setIsEditMode}
                 setSelectedProduct={setSelectedProduct}
-                categories={sampleCategories}
+                categories={categories}
                 onUpdate={handleUpdateProduct}
                 onAddVariant={handleAddVariant}
                 onEditVariant={handleEditVariant}
@@ -578,7 +596,7 @@ const ProductManagement = () => {
                 onOpenChange={setShowAddProduct}
                 newProduct={newProduct}
                 setNewProduct={setNewProduct}
-                categories={sampleCategories}
+                categories={categories}
                 onSave={handleAddProduct}
                 onAddVariant={handleAddVariant}
                 onEditVariant={handleEditVariant}

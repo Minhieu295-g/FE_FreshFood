@@ -18,6 +18,9 @@ import OrderSuccessPage from "../components/order/OrderSuccessData";
 import OrderHistory from "../components/order/OrderHistory";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import ProductManagement from "../components/admin/product-management/ProductManagement";
+import {CategoryManagement} from "../components/admin/category-magement/CategoryManagement";
+import {UserManagement} from "../components/admin/user-management/UserManagement";
+import AdminLayout from "../components/admin/AdminLayout";
 
 export const Router = createBrowserRouter([
 
@@ -69,6 +72,15 @@ export const Router = createBrowserRouter([
             }, {
                 path: "product-management",
                 element: <ProductManagement/>
+            }, {
+                path: "category-management",
+                element: <CategoryManagement/>
+            }, {
+                path: "user-management",
+                element: <UserManagement/>
+            }, {
+                path: "admin",
+                element: <AdminLayout/>
             }
         ]
 

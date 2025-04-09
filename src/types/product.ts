@@ -30,3 +30,21 @@ export interface ToastState {
     message: string
     type: "success" | "error" | "info"
 }
+
+export interface ProductRequestDTO {
+    name: string;
+    description: string;
+    categoryId: number;
+}
+
+export interface ProductVariantRequestDTO {
+    productId: number;
+    name: string;
+    price: number;
+    discountPercentage: number;
+    unit: "KG" | "G" | "L" | "ML" | "BOX" | "CAN" | "BOTTLE" | "PIECE" | "BAG" | "BUNDLE" | "PACK";
+    expiryDate: string;  // MM/dd/yyyy
+    status: "AVAILABLE" | "OUT_OF_STOCK" | "DISCONTINUED" | "PRE_ORDER" | "ARCHIVED";
+}
+
+
