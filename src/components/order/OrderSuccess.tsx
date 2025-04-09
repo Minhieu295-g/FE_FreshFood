@@ -20,35 +20,15 @@ import { Button } from "../../components/ui/button"
 import { Card, CardContent } from "../../components/ui/card"
 import { Separator } from "../../components/ui/separator"
 import { motion } from "framer-motion"
+import {OrderSuccessProps} from "../../types/order";
 
-interface OrderSuccessProps {
-    orderNumber: string
-    orderDate: string
-    deliveryDate: string
-    totalAmount: number
-    paymentMethod: string
-    shippingAddress: {
-        name: string
-        phone: string
-        address: string
-        city: string
-        district: string
-        ward: string
-    }
-    items: Array<{
-        id: number
-        name: string
-        price: number
-        quantity: number
-        image: string
-        variant?: string
-    }>
-}
+
 
 const OrderSuccess = ({
                           orderNumber = "ORD-20240325-7812",
                           orderDate = "25/03/2024, 15:30",
                           deliveryDate = "28/03/2024",
+                          deliveryFee=50000,
                           totalAmount = 245000,
                           paymentMethod = "Thanh toán khi nhận hàng (COD)",
                           shippingAddress = {
@@ -101,7 +81,7 @@ const OrderSuccess = ({
 
     // Calculate subtotal
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const shippingFee = 30000
+    const shippingFee = deliveryFee
 
     // Copy order number to clipboard
     const copyOrderNumber = () => {
