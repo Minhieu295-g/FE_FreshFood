@@ -31,12 +31,10 @@ import { Separator } from "../../components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog"
 import {OrderResponse} from "../../types/order";
 import {getOrdersByUserId} from "../../api/orderApi";
-import dayjs from "dayjs";
-
+import { format } from "date-fns";
 // Order status types
 type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "returned"
 
-// Order interface
 interface OrderItem {
     id: number
     name: string
@@ -642,8 +640,7 @@ const OrderCard = ({ order, formatCurrency, onViewDetails }: OrderCardProps) => 
                         </div>
                         <p className="text-sm text-gray-600 flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5" />
-                            {dayjs(order.date).format("DD/MM/YYYY HH:mm")}
-                        </p>
+                            {format(new Date(order.date), "dd/MM/yyyy HH:mm")}                        </p>
                     </div>
                     <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900">{formatCurrency(order.totalPrice)}</p>
@@ -774,7 +771,7 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600 text-sm">Ngày đặt hàng:</span>
-                                    <span className="text-gray-900">                            {dayjs(order.date).format("DD/MM/YYYY HH:mm")}
+                                    <span className="text-gray-900">                           {format(new Date(order.date), "dd/MM/yyyy HH:mm")}
 </span>
                                 </div>
                                 <div className="flex justify-between">
@@ -816,7 +813,7 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
                                 {order.expectedDate && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-600 text-sm">Ngày giao dự kiến:</span>
-                                        <span className="text-gray-900">        {dayjs(order.expectedDate).format("DD/MM/YYYY HH:mm")}
+                                        <span className="text-gray-900">        {format(new Date(order.date), "dd/MM/yyyy HH:mm")}
 </span>
                                     </div>
                                 )}
@@ -954,4 +951,3 @@ const OrderDetailsDialog = ({ order, formatCurrency, onClose }: OrderDetailsDial
 }
 
 export default OrderHistory
-

@@ -1,8 +1,9 @@
 import axios from "axios";
 import {ProductDefault} from "../types/productDefault";
-import {Product} from "../types/product";
+import {Product, ProductRequestDTO, ProductVariantRequestDTO} from "../types/product";
 import {LoaderFunctionArgs} from "react-router-dom";
 import {ApiResponse, PaginatedResponse, SearchParams} from "../types/api";
+import api from "./api";
 
 export const fetchProductDefault = async (): Promise<ProductDefault[]> => {
     const response = await axios.get(`http://localhost:80/product/list-default`);
@@ -25,6 +26,26 @@ export const FetchProductById = async ({ params }: LoaderFunctionArgs): Promise<
 
     throw new Error('Không tìm thấy sản phẩm.');
 };
+
+export const getProducts = async (): Promise<ApiResponse<PaginatedResponse<Product>>> => {
+    const response = await axios.get(`http://localhost:80/product/list`);
+
+    if (response.status === 200) {
+        console.log(response.data);
+        return response.data;
+    }
+
+    throw new Error('Không tìm thấy sản phẩm.');
+}
+
+export const deleteProduct = async (id: number) => {
+    const response = await api.delete(`/product/${id}`);
+    if (response.status === 200) {
+        console.log(response.data);
+        return response.data;
+    }
+    throw new Error('Không tìm thấy sản phẩm.');
+}
 
 export const fetchProductsBySearch = async (
     params: SearchParams
@@ -52,10 +73,38 @@ export const fetchProductsBySearch = async (
             `http://localhost:80/product/list-with-search-product?${queryParams.toString()}`
         );
 
-        console.log(response.data); // Xem phản hồi từ server
         return response.data;
     } catch (error) {
         console.error('Error fetching products:', error);
-        throw error; // Đảm bảo bắt lỗi ở nơi gọi hàm
+        throw error;
+    }
+};
+
+export const addProductWithVariants = async (
+    product: ProductRequestDTO,
+    thumbnail: File,
+    images: File[],
+    productVariants: ProductVariantRequestDTO[],
+    variantThumbnails: File[]
+) => {
+    try {
+        if (productVariants.length !== variantThumbnails.length) {
+            throw new Error("Số lượng biến thể và ảnh không khớp!");
+        }
+        console.log("product variant:", productVariants)
+        const formData = new FormData();
+        formData.append("thumbnail", thumbnail);
+        images.forEach((image) => formData.append("images", image));
+        formData.append("product", new Blob([JSON.stringify(product)], { type: "application/json" }));
+        variantThumbnails.forEach((variant) => formData.append("variants", variant));
+
+        formData.append("product_variants", new Blob([JSON.stringify(productVariants)], { type: "application/json" }));
+
+        const config = { timeout: 60000 };
+        const response = await api.post("/product/product-with-variant/", formData, config);
+        return response.data;
+    } catch (error) {
+        console.error("Error adding product:", error);
+        throw error;
     }
 };
