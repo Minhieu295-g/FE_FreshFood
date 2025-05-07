@@ -535,6 +535,14 @@ const OrderHistory = () => {
                                 </Badge>
                             )}
                         </TabsTrigger>
+                        <TabsTrigger value="returned" className="relative">
+                            Đã hủy
+                            {getStatusCount("returned") > 0 && (
+                                <Badge variant="secondary" className="ml-1.5">
+                                    {getStatusCount("returned")}
+                                </Badge>
+                            )}
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value={activeTab} className="mt-0">

@@ -85,28 +85,26 @@ export interface ShippingAddress {
 }
 
 export interface Order {
-    id: string
-    orderNumber: string
-    date: string
-    total: number
-    status: OrderStatus
-    paymentMethod: PaymentMethod
-    paymentStatus: PaymentStatus
-    items: OrderItem[]
-    shippingAddress: ShippingAddress
-    trackingNumber?: string
-    estimatedDelivery?: string
-    userId: number
-    userName: string
-    userEmail: string
-    notes?: string
-    adminNotes?: string
+    id: number,
+    orderNumber: string,
+    date: string,
+    totalPrice: number,
+    shippingFee: number,
+    expectedDate: string,
+    paymentMethod: string,
+    status: OrderStatus,
+    note: string,
+    items: OrderItemResponse[],
+    shippingAddress: DeliveryAddressResponse
 }
 
 export interface OrderStatusUpdate {
-    orderId: string
+    orderId: number
     status: OrderStatus
     notes?: string
+}
+export interface OrderStatusUpdateRequest {
+    status: OrderStatus
 }
 
 export interface OrderFilters {
@@ -191,4 +189,10 @@ export const paymentMethodConfig: Record<PaymentMethod, { label: string }> = {
     credit_card: {
         label: "Thẻ tín dụng/ghi nợ",
     },
+}
+export const paymentMethodLabels: Record<string, string> = {
+    COD: "Thanh toán khi nhận hàng (COD)",
+    MOMO: "Ví MoMo",
+    BANK_TRANSFER: "Chuyển khoản ngân hàng",
+    CREDIT_CARD: "Thẻ tín dụng/ghi nợ",
 }

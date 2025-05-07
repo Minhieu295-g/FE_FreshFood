@@ -8,6 +8,7 @@ interface User {
     fullName: string;
     userId: number;
     cartId: number;
+    role: string;
 }
 
 interface UserContextType {
@@ -34,6 +35,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
             });
 
             if (response.data.status === 200) {
+                console.log("data response: ", response.data)
                 setUser(response.data.data);
                 setIsLoggedIn(true);
                 localStorage.setItem("user", JSON.stringify(response.data.data));
