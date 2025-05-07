@@ -83,6 +83,7 @@ export const ProductDetail = ({
     const [newImageAltText, setNewImageAltText] = useState<string>("")
     const [showAltTextInput, setShowAltTextInput] = useState<boolean>(false)
     const [tempImageFile, setTempImageFile] = useState<File | null>(null)
+    const [changes, setChanges] = useState<ProductChanges | null>(null);
 
     // Toast state
     const [toast, setToast] = useState<ToastState>({
@@ -314,7 +315,7 @@ export const ProductDetail = ({
         }
 
         // Prepare changes object
-        const changes: ProductChanges = {
+        const newChanges: ProductChanges = {
             modifiedProduct: selectedProduct,
             originalProduct,
             productThumbnail,
@@ -326,10 +327,14 @@ export const ProductDetail = ({
             variantThumbnails,
         }
 
-        console.log("changes", changes)
-
-        onUpdate(changes)
+        setChanges(newChanges);
+        onUpdate(newChanges)
     }
+    useEffect(() => {
+        if (changes) {
+            console.log("Changes vừa được cập nhật:", changes);
+        }
+    }, [changes]);
 
     if (!selectedProduct) return null
 

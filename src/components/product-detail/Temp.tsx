@@ -2,20 +2,9 @@
 
 import { useEffect, useState, useContext } from "react"
 import type { Product } from "../../types/product"
-import {deleteReview, deleteReviewReply, getReviews} from "../../api/reviewApi"
-import {
-    Info,
-    MessageSquare,
-    Leaf,
-    Star,
-    Edit,
-    Trash2,
-    ChevronLeft,
-    ChevronRight,
-    Reply,
-    MessageCircle
-} from "lucide-react"
-import type {ReviewReplyResponse, ReviewResponse} from "../../types/review"
+import { Info, MessageSquare, Leaf, Star, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
+import { getReviews } from "../../api/reviewApi"
+import type { ReviewResponse } from "../../types/review"
 import { AddReviewDialog } from "./AddReviewDialog"
 import { EditReviewDialog } from "./EditReviewDialog"
 import { ReviewImageGallery } from "./ReviewImageGallery"
@@ -31,7 +20,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "../../components/ui/alert-dialog"
-import {ReviewReplyDialog} from "./ReviewReplyDialog";
+import { deleteReview } from "../../api/reviewApi"
 
 const ProductDetails = ({ product }: { product: Product }) => {
     const [activeTab, setActiveTab] = useState("details")
@@ -39,9 +28,6 @@ const ProductDetails = ({ product }: { product: Product }) => {
     const [isAddReviewOpen, setIsAddReviewOpen] = useState(false)
     const [editingReview, setEditingReview] = useState<ReviewResponse | null>(null)
     const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null)
-    const [replyingToReviewId, setReplyingToReviewId] = useState<number | null>(null)
-    const [editingReply, setEditingReply] = useState<{ reviewId: number; reply: ReviewReplyResponse } | null>(null)
-    const [deletingReplyId, setDeletingReplyId] = useState<number | null>(null)
     const [reviewStats, setReviewStats] = useState({
         average: 0,
         total: 0,
@@ -51,14 +37,8 @@ const ProductDetails = ({ product }: { product: Product }) => {
     const [totalPages, setTotalPages] = useState(1)
     const [isLoading, setIsLoading] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
-    const [isDeletingReply, setIsDeletingReply] = useState(false)
-
-    // Get current user from context
-    const { user } = useContext(UserContext)!
+    const{isLoggedIn, user} = useContext(UserContext)!
     const currentUserId = user?.userId || 0
-    // const isAdminOrStaff ="ADMIN"
-    console.log("user", user)
-    const isAdminOrStaff = user?.role === "ADMIN" || user?.role === "STAFF"
 
     const fetchReviews = async (page = 1) => {
         setIsLoading(true)
@@ -76,7 +56,6 @@ const ProductDetails = ({ product }: { product: Product }) => {
             setCurrentPage(page)
             setTotalPages(Math.ceil(data.data.totalPages / 5))
 
-            // Calculate review statistics
             if (data.data.items.length > 0) {
                 const total = data.data.items.length
                 const sum = data.data.items.reduce((acc, review) => acc + review.rating, 0)
@@ -104,10 +83,11 @@ const ProductDetails = ({ product }: { product: Product }) => {
 
     useEffect(() => {
         fetchReviews(1)
+
     }, [product.id, activeTab])
 
     const handleReviewSuccess = () => {
-        fetchReviews(currentPage)
+        fetchReviews(1)
     }
 
     const handleEditReview = (review: ReviewResponse) => {
@@ -126,29 +106,6 @@ const ProductDetails = ({ product }: { product: Product }) => {
         } finally {
             setIsDeleting(false)
             setDeletingReviewId(null)
-        }
-    }
-
-    const handleReplyToReview = (reviewId: number) => {
-        setReplyingToReviewId(reviewId)
-    }
-
-    const handleEditReply = (reviewId: number, reply: ReviewReplyResponse) => {
-        setEditingReply({ reviewId, reply })
-    }
-
-    const handleDeleteReply = async () => {
-        if (!deletingReplyId) return
-
-        setIsDeletingReply(true)
-        try {
-            await deleteReviewReply(deletingReplyId)
-            fetchReviews(currentPage)
-        } catch (error) {
-            console.error("Error deleting review reply:", error)
-        } finally {
-            setIsDeletingReply(false)
-            setDeletingReplyId(null)
         }
     }
 
@@ -377,88 +334,31 @@ const ProductDetails = ({ product }: { product: Product }) => {
                                                     </div>
                                                 </div>
 
-                                                <div className="flex space-x-2">
-                                                    {review.userId === currentUserId && (
-                                                        <>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleEditReview(review)}
-                                                                className="text-blue-600 hover:text-blue-800"
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => setDeletingReviewId(review.id)}
-                                                                className="text-red-600 hover:text-red-800"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </>
-                                                    )}
-
-                                                    {isAdminOrStaff && !review.reply && (
+                                                {review.userId === currentUserId && (
+                                                    <div className="flex space-x-2">
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => handleReplyToReview(review.id)}
-                                                            className="text-green-600 hover:text-green-800"
+                                                            onClick={() => handleEditReview(review)}
+                                                            className="text-blue-600 hover:text-blue-800"
                                                         >
-                                                            <Reply className="h-4 w-4" />
+                                                            <Edit className="h-4 w-4" />
                                                         </Button>
-                                                    )}
-                                                </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setDeletingReviewId(review.id)}
+                                                            className="text-red-600 hover:text-red-800"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                )}
                                             </div>
                                             <p className="mt-3 text-gray-700">{review.comment}</p>
 
                                             {/* Review images */}
                                             {review.images && review.images.length > 0 && <ReviewImageGallery images={review.images} />}
-
-                                            {/* Review Reply */}
-                                            {review.reply && (
-                                                <div className="mt-4 pl-6 border-l-2 border-green-200">
-                                                    <div className="bg-gray-50 p-3 rounded-lg">
-                                                        <div className="flex justify-between items-start">
-                                                            <div>
-                                                                <div className="flex items-center">
-                                                                    <MessageCircle className="h-4 w-4 text-green-600 mr-2" />
-                                                                    <h4 className="font-medium text-gray-800 text-sm">
-                                                                        Phản hồi từ {review.reply.fullName}
-                                                                        <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                                      Nhân viên
-                                    </span>
-                                                                    </h4>
-                                                                </div>
-                                                                <span className="text-xs text-gray-500 ml-6">{review.reply.date}</span>
-                                                            </div>
-
-                                                            {isAdminOrStaff && (
-                                                                <div className="flex space-x-2">
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        onClick={() => handleEditReply(review.id, review.reply)}
-                                                                        className="h-7 w-7 p-0 text-blue-600 hover:text-blue-800"
-                                                                    >
-                                                                        <Edit className="h-3.5 w-3.5" />
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        onClick={() => setDeletingReplyId(review.reply.id)}
-                                                                        className="h-7 w-7 p-0 text-red-600 hover:text-red-800"
-                                                                    >
-                                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                                    </Button>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <p className="mt-2 text-gray-700 ml-6">{review.reply.reply}</p>
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -608,34 +508,7 @@ const ProductDetails = ({ product }: { product: Product }) => {
                 />
             )}
 
-            {/* Reply to Review Dialog */}
-            {replyingToReviewId && (
-                <ReviewReplyDialog
-                    open={!!replyingToReviewId}
-                    onOpenChange={(open) => {
-                        if (!open) setReplyingToReviewId(null)
-                    }}
-                    reviewId={replyingToReviewId}
-                    userId={currentUserId}
-                    onSuccess={handleReviewSuccess}
-                />
-            )}
-
-            {/* Edit Reply Dialog */}
-            {editingReply && (
-                <ReviewReplyDialog
-                    open={!!editingReply}
-                    onOpenChange={(open) => {
-                        if (!open) setEditingReply(null)
-                    }}
-                    reviewId={editingReply.reviewId}
-                    userId={currentUserId}
-                    existingReply={editingReply.reply}
-                    onSuccess={handleReviewSuccess}
-                />
-            )}
-
-            {/* Delete Review Confirmation Dialog */}
+            {/* Delete Confirmation Dialog */}
             <AlertDialog
                 open={!!deletingReviewId}
                 onOpenChange={(open) => {
@@ -653,29 +526,6 @@ const ProductDetails = ({ product }: { product: Product }) => {
                         <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDeleteReview} className="bg-red-500 hover:bg-red-600">
                             {isDeleting ? "Đang xóa..." : "Xóa"}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            {/* Delete Reply Confirmation Dialog */}
-            <AlertDialog
-                open={!!deletingReplyId}
-                onOpenChange={(open) => {
-                    if (!open) setDeletingReplyId(null)
-                }}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Xác nhận xóa phản hồi</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Bạn có chắc chắn muốn xóa phản hồi này? Hành động này không thể hoàn tác.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteReply} className="bg-red-500 hover:bg-red-600">
-                            {isDeletingReply ? "Đang xóa..." : "Xóa"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

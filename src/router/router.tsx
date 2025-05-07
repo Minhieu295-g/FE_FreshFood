@@ -21,6 +21,7 @@ import ProductManagement from "../components/admin/product-management/ProductMan
 import {CategoryManagement} from "../components/admin/category-magement/CategoryManagement";
 import {UserManagement} from "../components/admin/user-management/UserManagement";
 import AdminLayout from "../components/admin/AdminLayout";
+import {OrderManagement} from "../components/admin/order-manegement/OrderManagement";
 
 export const Router = createBrowserRouter([
 
@@ -81,6 +82,9 @@ export const Router = createBrowserRouter([
             }, {
                 path: "admin",
                 element: <AdminLayout/>
+            }, {
+                path: "order-management",
+                element: <OrderManagement/>
             }
         ]
 

@@ -14,7 +14,7 @@ import {toast} from "react-toastify";
 import {createOrder} from "../../api/orderApi";
 import {OrderRequest, OrderSuccessProps} from "../../types/order";
 import {UserContext} from "../../contexts/UserContext";
-import dayjs from "dayjs";
+import { format } from "date-fns";
 
 const OrderConfirmation = () => {
     const [selectedMethod, setSelectedMethod] = useState("COD")
@@ -94,7 +94,7 @@ const OrderConfirmation = () => {
                 const response = await createOrder(orderData);
                 const orderDetails: OrderSuccessProps = {
                     orderNumber: response.data,
-                    orderDate: dayjs().format("DD/MM/YYYY, HH:mm"),
+                    orderDate: format(new Date(), "dd/MM/yyyy HH:mm"),
                     deliveryFee: orderData.deliveryFee,
                     deliveryDate: orderData.expectedDeliveryDate,
                     totalAmount: orderData.totalPrice,

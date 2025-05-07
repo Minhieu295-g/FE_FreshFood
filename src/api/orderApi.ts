@@ -1,5 +1,5 @@
 import api from "./api";
-import {OrderRequest, OrderResponse} from "../types/order";
+import {OrderRequest, OrderResponse, OrderStatusUpdateRequest} from "../types/order";
 import type { Order, OrderFilters, OrderPagination, OrderSortOptions, OrderStatusUpdate } from "../types/order"
 import {ApiResponse, PaginatedResponse} from "../types/api";
 
@@ -26,214 +26,259 @@ export const getOrdersByUserId = async (userId: number): Promise<ApiResponse<Pag
         throw error;
     }
 }
-
-// Mẫu dữ liệu để demo
-const sampleOrders: Order[] = [
+export const getAllOrders= async (): Promise<ApiResponse<PaginatedResponse<Order>>> => {
+    try {
+        const response = await api.get(`/order/list/` , {
+            withCredentials: true,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Get orders thất bại:", error);
+        throw error;
+    }
+}
+export let sampleOrders: Order[] = [
     {
-        id: "1",
+        id: 1,
         orderNumber: "ORD-20240325-7812",
         date: "25/03/2024, 15:30",
-        total: 245000,
+        totalPrice: 245000,
+        shippingFee: 30000,
+        expectedDate: "28/03/2024",
         status: "delivered",
-        paymentMethod: "cod",
-        paymentStatus: "paid",
+        paymentMethod: "COD",
+        note: "",
         items: [
             {
                 id: 1,
-                name: "Set 3 cuộn túi đựng rác tự phân hủy sinh học",
-                price: 9500,
                 quantity: 2,
-                image: "https://res.cloudinary.com/digtjnoh3/image/upload/v1740147420/u72kxxkaiedgkvh4swbl.jpg",
-                variant: "Set - 3 cuộn",
-                productId: 101,
-                variantId: 201,
+                product: {
+                    id: 201,
+                    name: "Set 3 cuộn túi đựng rác tự phân hủy sinh học",
+                    price: 9500,
+                    discountPercentage: 0,
+                    thumbnailUrl: "https://res.cloudinary.com/digtjnoh3/image/upload/v1740147420/u72kxxkaiedgkvh4swbl.jpg",
+                    unit: "Set",
+                    expiredDate: "31/12/2025",
+                    status: "active",
+                },
             },
             {
                 id: 2,
-                name: "Rau cải ngọt hữu cơ (500g)",
-                price: 35000,
                 quantity: 1,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728028836/ripempxa3z48aqc1clfa.jpg",
-                variant: "Gói 500g",
-                productId: 102,
-                variantId: 202,
+                product: {
+                    id: 202,
+                    name: "Rau cải ngọt hữu cơ",
+                    price: 35000,
+                    discountPercentage: 5,
+                    thumbnailUrl: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728028836/ripempxa3z48aqc1clfa.jpg",
+                    unit: "500g",
+                    expiredDate: "15/04/2024",
+                    status: "active",
+                },
             },
             {
                 id: 3,
-                name: "Táo Envy New Zealand size 70-80 (1kg)",
-                price: 185000,
                 quantity: 1,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Hộp 1kg",
-                productId: 103,
-                variantId: 203,
+                product: {
+                    id: 203,
+                    name: "Táo Envy New Zealand size 70-80",
+                    price: 185000,
+                    discountPercentage: 10,
+                    thumbnailUrl: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+                    unit: "1kg",
+                    expiredDate: "30/05/2024",
+                    status: "active",
+                },
             },
         ],
         shippingAddress: {
             id: 1,
             name: "Lê Minh Hiếu",
-            phone: "(+84) 345778312",
-            address: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
-            city: "An Giang",
-            district: "Huyện An Phú",
-            ward: "Thị Trấn An Phú",
-            isDefault: true,
+            numberPhone: "(+84) 345778312",
+            provinceId: 1,
+            districtId: 2,
+            wardId: 3,
+            provinceName: "An Giang",
+            districtName: "Huyện An Phú",
+            wardName: "Thị Trấn An Phú",
+            detailAddress: "Trung Tâm Dạy Nghề & Giáo Dục Thường Xuyên Huyện An Phú",
+            default: true,
         },
-        trackingNumber: "VNPOST123456789",
-        estimatedDelivery: "28/03/2024",
-        userId: 1001,
-        userName: "Lê Minh Hiếu",
-        userEmail: "hieu.le@example.com",
     },
     {
-        id: "2",
+        id: 2,
         orderNumber: "ORD-20240320-6543",
         date: "20/03/2024, 09:15",
-        total: 178000,
+        totalPrice: 178000,
+        shippingFee: 30000,
+        expectedDate: "23/03/2024",
         status: "shipped",
-        paymentMethod: "momo",
-        paymentStatus: "paid",
+        paymentMethod: "MOMO",
+        note: "",
         items: [
             {
                 id: 4,
-                name: "Thịt heo hữu cơ (500g)",
-                price: 89000,
                 quantity: 2,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Gói 500g",
-                productId: 104,
-                variantId: 204,
+                product: {
+                    id: 204,
+                    name: "Thịt heo hữu cơ",
+                    price: 89000,
+                    discountPercentage: 0,
+                    thumbnailUrl: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+                    unit: "500g",
+                    expiredDate: "10/04/2024",
+                    status: "active",
+                },
             },
         ],
         shippingAddress: {
             id: 2,
             name: "Nguyễn Văn An",
-            phone: "(+84) 987654321",
-            address: "123 Đường Lê Lợi",
-            city: "Hồ Chí Minh",
-            district: "Quận 1",
-            ward: "Phường Bến Nghé",
-            isDefault: true,
+            numberPhone: "(+84) 987654321",
+            provinceId: 4,
+            districtId: 5,
+            wardId: 6,
+            provinceName: "Hồ Chí Minh",
+            districtName: "Quận 1",
+            wardName: "Phường Bến Nghé",
+            detailAddress: "123 Đường Lê Lợi",
+            default: true,
         },
-        trackingNumber: "VNPOST987654321",
-        estimatedDelivery: "23/03/2024",
-        userId: 1002,
-        userName: "Nguyễn Văn An",
-        userEmail: "an.nguyen@example.com",
     },
     {
-        id: "3",
+        id: 3,
         orderNumber: "ORD-20240315-5421",
         date: "15/03/2024, 14:20",
-        total: 65000,
+        totalPrice: 65000,
+        shippingFee: 30000,
+        expectedDate: "",
         status: "cancelled",
-        paymentMethod: "credit_card",
-        paymentStatus: "failed",
+        paymentMethod: "CREDIT_CARD",
+        note: "Khách hàng hủy đơn vì đổi ý",
         items: [
             {
                 id: 5,
-                name: "Sữa tươi hữu cơ (1L)",
-                price: 65000,
                 quantity: 1,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Hộp 1L",
-                productId: 105,
-                variantId: 205,
+                product: {
+                    id: 205,
+                    name: "Sữa tươi hữu cơ",
+                    price: 65000,
+                    discountPercentage: 0,
+                    thumbnailUrl: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+                    unit: "1L",
+                    expiredDate: "20/05/2024",
+                    status: "active",
+                },
             },
         ],
         shippingAddress: {
             id: 3,
             name: "Trần Thị Bình",
-            phone: "(+84) 123456789",
-            address: "456 Đường Nguyễn Huệ",
-            city: "Hà Nội",
-            district: "Quận Hoàn Kiếm",
-            ward: "Phường Hàng Bài",
-            isDefault: true,
+            numberPhone: "(+84) 123456789",
+            provinceId: 7,
+            districtId: 8,
+            wardId: 9,
+            provinceName: "Hà Nội",
+            districtName: "Quận Hoàn Kiếm",
+            wardName: "Phường Hàng Bài",
+            detailAddress: "456 Đường Nguyễn Huệ",
+            default: true,
         },
-        userId: 1003,
-        userName: "Trần Thị Bình",
-        userEmail: "binh.tran@example.com",
-        notes: "Khách hàng hủy đơn vì đổi ý",
     },
     {
-        id: "4",
+        id: 4,
         orderNumber: "ORD-20240310-4321",
         date: "10/03/2024, 11:45",
-        total: 320000,
+        totalPrice: 320000,
+        shippingFee: 30000,
+        expectedDate: "15/03/2024",
         status: "processing",
-        paymentMethod: "bank_transfer",
-        paymentStatus: "paid",
+        paymentMethod: "BANK_TRANSFER",
+        note: "",
         items: [
             {
                 id: 6,
-                name: "Gạo hữu cơ (5kg)",
-                price: 160000,
                 quantity: 2,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Túi 5kg",
-                productId: 106,
-                variantId: 206,
+                product: {
+                    id: 206,
+                    name: "Gạo hữu cơ",
+                    price: 160000,
+                    discountPercentage: 5,
+                    thumbnailUrl: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+                    unit: "5kg",
+                    expiredDate: "31/12/2024",
+                    status: "active",
+                },
             },
         ],
         shippingAddress: {
             id: 4,
             name: "Phạm Văn Cường",
-            phone: "(+84) 912345678",
-            address: "789 Đường Trần Hưng Đạo",
-            city: "Đà Nẵng",
-            district: "Quận Hải Châu",
-            ward: "Phường Thạch Thang",
-            isDefault: true,
+            numberPhone: "(+84) 912345678",
+            provinceId: 10,
+            districtId: 11,
+            wardId: 12,
+            provinceName: "Đà Nẵng",
+            districtName: "Quận Hải Châu",
+            wardName: "Phường Thạch Thang",
+            detailAddress: "789 Đường Trần Hưng Đạo",
+            default: true,
         },
-        estimatedDelivery: "15/03/2024",
-        userId: 1004,
-        userName: "Phạm Văn Cường",
-        userEmail: "cuong.pham@example.com",
     },
     {
-        id: "5",
+        id: 5,
         orderNumber: "ORD-20240305-3210",
         date: "05/03/2024, 16:30",
-        total: 95000,
+        totalPrice: 95000,
+        shippingFee: 30000,
+        expectedDate: "",
         status: "pending",
-        paymentMethod: "cod",
-        paymentStatus: "pending",
+        paymentMethod: "COD",
+        note: "",
         items: [
             {
                 id: 7,
-                name: "Trứng gà hữu cơ (10 quả)",
-                price: 45000,
                 quantity: 1,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Hộp 10 quả",
-                productId: 107,
-                variantId: 207,
+                product: {
+                    id: 207,
+                    name: "Trứng gà hữu cơ",
+                    price: 45000,
+                    discountPercentage: 0,
+                    thumbnailUrl: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+                    unit: "10 quả",
+                    expiredDate: "15/04/2024",
+                    status: "active",
+                },
             },
             {
                 id: 8,
-                name: "Rau xà lách hữu cơ (300g)",
-                price: 25000,
                 quantity: 2,
-                image: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
-                variant: "Gói 300g",
-                productId: 108,
-                variantId: 208,
+                product: {
+                    id: 208,
+                    name: "Rau xà lách hữu cơ",
+                    price: 25000,
+                    discountPercentage: 0,
+                    thumbnailUrl: "http://res.cloudinary.com/digtjnoh3/image/upload/v1728029282/rcu73vzqfa39rvsxdgja.jpg",
+                    unit: "300g",
+                    expiredDate: "10/04/2024",
+                    status: "active",
+                },
             },
         ],
         shippingAddress: {
             id: 5,
             name: "Võ Thị Dung",
-            phone: "(+84) 867543210",
-            address: "101 Đường Lê Duẩn",
-            city: "Huế",
-            district: "Thành phố Huế",
-            ward: "Phường Phú Hội",
-            isDefault: true,
+            numberPhone: "(+84) 867543210",
+            provinceId: 13,
+            districtId: 14,
+            wardId: 15,
+            provinceName: "Huế",
+            districtName: "Thành phố Huế",
+            wardName: "Phường Phú Hội",
+            detailAddress: "101 Đường Lê Duẩn",
+            default: true,
         },
-        userId: 1005,
-        userName: "Võ Thị Dung",
-        userEmail: "dung.vo@example.com",
     },
 ]
 
@@ -243,26 +288,16 @@ export const getOrders = async (
     sort: OrderSortOptions = { field: "date", direction: "desc" },
     pagination: Partial<OrderPagination> = { page: 1, limit: 10 },
 ): Promise<{ data: Order[]; pagination: OrderPagination }> => {
-    // Giả lập API call
+    const response = await getAllOrders();
+    const data = response?.data.items;
+    sampleOrders = data;
     return new Promise((resolve) => {
         setTimeout(() => {
-            let filteredOrders = [...sampleOrders]
+            let filteredOrders = [...data]
 
             // Áp dụng bộ lọc
             if (filters.status) {
                 filteredOrders = filteredOrders.filter((order) => order.status === filters.status)
-            }
-
-            if (filters.paymentStatus) {
-                filteredOrders = filteredOrders.filter((order) => order.paymentStatus === filters.paymentStatus)
-            }
-
-            if (filters.paymentMethod) {
-                filteredOrders = filteredOrders.filter((order) => order.paymentMethod === filters.paymentMethod)
-            }
-
-            if (filters.userId) {
-                filteredOrders = filteredOrders.filter((order) => order.userId === filters.userId)
             }
 
             if (filters.searchQuery) {
@@ -270,9 +305,8 @@ export const getOrders = async (
                 filteredOrders = filteredOrders.filter(
                     (order) =>
                         order.orderNumber.toLowerCase().includes(query) ||
-                        order.userName.toLowerCase().includes(query) ||
-                        order.userEmail.toLowerCase().includes(query) ||
-                        order.items.some((item) => item.name.toLowerCase().includes(query)),
+                        order.shippingAddress.name.toLowerCase().includes(query) ||
+                        order.items.some((item) => item.product.name.toLowerCase().includes(query)),
                 )
             }
 
@@ -293,7 +327,7 @@ export const getOrders = async (
                     const dateB = new Date(b.date.split(",")[0].split("/").reverse().join("-"))
                     return sort.direction === "asc" ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime()
                 } else if (sort.field === "total") {
-                    return sort.direction === "asc" ? a.total - b.total : b.total - a.total
+                    return sort.direction === "asc" ? a.totalPrice - b.totalPrice : b.totalPrice - a.totalPrice
                 } else if (sort.field === "orderNumber") {
                     return sort.direction === "asc"
                         ? a.orderNumber.localeCompare(b.orderNumber)
@@ -322,7 +356,7 @@ export const getOrders = async (
 }
 
 // Lấy chi tiết đơn hàng
-export const getOrderById = async (id: string): Promise<Order | null> => {
+export const getOrderById = async (id: number): Promise<Order | null> => {
     // Giả lập API call
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -334,7 +368,13 @@ export const getOrderById = async (id: string): Promise<Order | null> => {
 
 // Cập nhật trạng thái đơn hàng
 export const updateOrderStatus = async (update: OrderStatusUpdate): Promise<Order> => {
-    // Giả lập API call
+    const request: OrderStatusUpdateRequest = {
+        status:  update.status
+    }
+    console.log("request", request)
+    const response = await api.patch(`/order/${update.orderId}`,request , {
+        withCredentials: true,
+    });
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             const orderIndex = sampleOrders.findIndex((order) => order.id === update.orderId)
@@ -347,7 +387,7 @@ export const updateOrderStatus = async (update: OrderStatusUpdate): Promise<Orde
             const updatedOrder = {
                 ...sampleOrders[orderIndex],
                 status: update.status,
-                adminNotes: update.notes || sampleOrders[orderIndex].adminNotes,
+                note: update.notes || sampleOrders[orderIndex].note,
             }
 
             sampleOrders[orderIndex] = updatedOrder
@@ -357,7 +397,7 @@ export const updateOrderStatus = async (update: OrderStatusUpdate): Promise<Orde
 }
 
 // Xuất hóa đơn
-export const generateInvoice = async (orderId: string): Promise<string> => {
+export const generateInvoice = async (orderId: number): Promise<string> => {
     // Giả lập API call
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -365,4 +405,3 @@ export const generateInvoice = async (orderId: string): Promise<string> => {
         }, 1000)
     })
 }
-
